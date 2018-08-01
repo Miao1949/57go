@@ -49,12 +49,15 @@ func getInput() (orderAmount int, state string) {
 func main() {
 	orderAmount, state := getInput()
 	total := float64(orderAmount)
+	subtotalString := ""
+	taxString := ""
 	if state == "WI" {
 		tax := total * 0.055
-		fmt.Printf("The subtotal is $%.2f\n", total)
-		fmt.Printf("The tax is $%.2f\n", tax)
+		subtotalString = fmt.Sprintf("The subtotal is $%.2f\n", total)
+		taxString = fmt.Sprintf("The tax is $%.2f\n", tax)
 		total += tax
 	}
+	totalString := fmt.Sprintf("The total is %.2f.\n", total)
 
-	fmt.Printf("The total is %.2f.\n", total)
+	fmt.Print(subtotalString + taxString + totalString)
 }
