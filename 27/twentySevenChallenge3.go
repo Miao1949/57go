@@ -14,62 +14,105 @@ var nameRegExp = regexp.MustCompile(`[a-zåäöA-ZÅÄÖ][a-zåäöA-ZÅÄÖ]+`)
 var employeeIdRegRxp = regexp.MustCompile(`[a-zåäöA-ZÅÄÖ]{2}-\d\d\d\d$`)
 var zipCodeRegRxp = regexp.MustCompile(`^\d+$`)
 
+
+//IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+// VALIDATOR
+//IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+
+type Validator interface {
+	validate(value string) (valid bool, validationErrorString string)
+}
+
+//---------------------------------------------------------
+// FIRST NAME VALIDATOR.
+//---------------------------------------------------------
+type FirstNameValidator struct {
+
+}
+
+func (fn FirstNameValidator) validate(value string) (valid bool, validationErrorString string) {
+	valid, validationErrorString = validateName(value, "first name")
+	return
+}
+
+//---------------------------------------------------------
+// LAST NAME VALIDATOR.
+//---------------------------------------------------------
+type LastNameValidator struct {
+
+}
+
+func (fn LastNameValidator) validate(lastName string) (valid bool, validationErrorString string){
+	valid, validationErrorString = validateName(lastName, "last name")
+	return
+}
+
+//---------------------------------------------------------
+// ZIP CODE VALIDATOR.
+//---------------------------------------------------------
+type ZipCodeValidator struct {
+
+}
+
+func (fn ZipCodeValidator) validate(zipCode string) (valid bool, validationErrorString string) {
+	valid  = validateZipCode(zipCode)
+	if !valid {
+		validationErrorString = "The ZIP code must be numeric."
+	}
+	return
+}
+
+//---------------------------------------------------------
+// EMPLOYEE ID VALIDATOR.
+//---------------------------------------------------------
+type EmployeeIdValidator struct {
+
+}
+
+func (fn EmployeeIdValidator) validate(employeeId string) (valid bool, validationErrorString string) {
+	valid  = validateEmployeeId(employeeId)
+	if !valid {
+		validationErrorString = fmt.Sprintf("%s is not a valid ID.", employeeId)
+	}
+	return
+}
+
+//---------------------------------------------------------
+// MAIN
+//---------------------------------------------------------
+
 func main() {
-	done := false
-	for !done {
-		fmt.Print("Enter the first name: ")
-		firstName, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		firstName = strings.TrimSpace(firstName)
+	firstNameValidator := FirstNameValidator{}
+	lastNameValidator := LastNameValidator{}
+	zipCodeValidator := ZipCodeValidator{}
+	employeeIdValidator := EmployeeIdValidator{}
 
-		valid, validationErrorString := validateName(firstName, "first name")
-		if valid {
-			done = true
-		} else {
-			fmt.Println(validationErrorString)
-		}
-	}
-
-	done = false
-	for !done {
-		fmt.Print("Enter the last name: ")
-		lastName, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		lastName = strings.TrimSpace(lastName)
-
-		valid, validationErrorString := validateName(lastName, "last name")
-		if valid {
-			done = true
-		} else {
-			fmt.Println(validationErrorString)
-		}
-	}
-
-	done = false
-	for !done {
-		fmt.Print("Enter the ZIP code: ")
-		zipCode, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		zipCode = strings.TrimSpace(zipCode)
-
-		if zipCodeRegRxp.MatchString(zipCode) {
-			done = true
-		} else {
-			fmt.Println("The ZIP code must be numeric.")
-		}
-	}
-
-	done = false
-	for !done {
-		fmt.Print("Enter the employeeId: ")
-		employeeId, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		employeeId = strings.TrimSpace(employeeId)
-
-		if employeeIdRegRxp.MatchString(employeeId) {
-			done = true
-		} else {
-			fmt.Printf("%s is not a valid ID\n", employeeId)
-		}
-	}
+	handleField(firstNameValidator, "Enter the first name:", "first name")
+	handleField(lastNameValidator, "Enter the last name:", "last name")
+	handleField(zipCodeValidator, "Enter the ZIP code:", "zip code")
+	handleField(employeeIdValidator, "Enter an employee ID:", "employee ID")
 
 	fmt.Println("There were no errors found.")
+}
+
+//---------------------------------------------------------
+// PRIVATE METHODS.
+//---------------------------------------------------------
+
+func handleField(validator Validator, inputString string, fieldName string) {
+	done := false
+	for !done {
+		fmt.Print(inputString)
+		inputtedValue, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+		inputtedValue = strings.TrimSpace(inputtedValue)
+
+		valid, validationErrorString := validator.validate(inputtedValue)
+		if valid {
+			done = true
+		} else {
+			fmt.Println(validationErrorString)
+		}
+	}
 }
 
 func validateName(name string, nameOfName string) (valid bool, validationErrorString string) {
@@ -87,34 +130,6 @@ func validateName(name string, nameOfName string) (valid bool, validationErrorSt
 	}
 
 	return  true, ""
-}
-
-func validateInput(firstName string, lastName string, zipCode string, employeeId string) (valid bool, validationErrorString string) {
-	if ok, ves := validateName(firstName, "first name"); !ok {
-		valid = false
-		validationErrorString = ves
-		return
-	}
-
-	if ok, ves := validateName(lastName, "last name"); !ok {
-		valid = false
-		validationErrorString = ves
-		return
-	}
-
-	if !zipCodeRegRxp.MatchString(zipCode) {
-		valid = false
-		validationErrorString = "The ZIP code must be numeric."
-		return
-	}
-
-	if !employeeIdRegRxp.MatchString(employeeId) {
-		valid = false
-		validationErrorString = fmt.Sprintf("%s is not a valid ID", employeeId)
-		return
-	}
-
-	return true, ""
 }
 
 func isStringEmpty(s string) bool {
@@ -146,3 +161,13 @@ func employeeIdValid(employeeId string) bool {
 
 	return false
 }
+
+func validateZipCode(zipCode string) bool {
+	return zipCodeRegRxp.MatchString(zipCode)
+}
+
+
+func validateEmployeeId(employeeId string) bool {
+	return employeeIdRegRxp.MatchString(employeeId)
+}
+
