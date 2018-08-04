@@ -28,7 +28,6 @@ func main() {
 }
 
 func readEmployeesFromFile() (employees []string, errorOccured bool) {
-
 	file, err := os.Open(FilenameIn)
 	if err != nil {
 		fmt.Println("Could not open file!")
