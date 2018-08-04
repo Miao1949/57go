@@ -7,6 +7,7 @@ import (
 	"strings"
 	"strconv"
 	"math/rand"
+	"time"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 func playRound() {
 
 	fmt.Println("Let's play Guess the Number.")
-	difficultyLevelAsString := getStringInput("Pick a difficulty level (1, 2, or 3):", []string{"1", "2", "3"})
+	difficultyLevelAsString := getStringInput("Pick a difficulty level (1, 2, or 3): ", []string{"1", "2", "3"})
 	difficultyLevel, _ := strconv.Atoi(difficultyLevelAsString)
 	var highLimit int
 	if difficultyLevel == 1 {
@@ -37,7 +38,8 @@ func playRound() {
 	}
 
 	numberOfGuesses := 0
-	correctNumber := 1 + rand.Intn(highLimit - 1)
+	randomNumberGenerator := rand.New(rand.NewSource(time.Now().Unix()))
+	correctNumber := 1 + randomNumberGenerator.Intn(highLimit - 1)
 	guessesMap := make(map[int]bool)
 
 	guess, numberOfNonIntegerEntries := getPositiveIntergerInput("I have my number. What's your guess? ")
@@ -48,22 +50,22 @@ func playRound() {
 		if guess == correctNumber {
 			fmt.Printf("You got it in %d guesses!\n%s\n", numberOfGuesses, generateTextForNumberOfGuesses(numberOfGuesses))
 			done = true
-		} else if guessesMap[guess] {
+		} else if _, ok := guessesMap[guess]; ok {
 			fmt.Printf("You have already guessed %d. Pick another number.\n", guess)
 			numberOfGuesses++
 			guess, numberOfNonIntegerEntries = getPositiveIntergerInput("Guess again: ")
 			numberOfGuesses++
 			numberOfGuesses += numberOfNonIntegerEntries
 		} else if guess < correctNumber {
+			guessesMap[guess] = true
 			guess, numberOfNonIntegerEntries = getPositiveIntergerInput("Too low. Guess again: ")
 			numberOfGuesses++
 			numberOfGuesses += numberOfNonIntegerEntries
-			guessesMap[guess] = true
 		} else {
+			guessesMap[guess] = true
 			guess, numberOfNonIntegerEntries = getPositiveIntergerInput("Too high. Guess again: ")
 			numberOfGuesses++
 			numberOfGuesses += numberOfNonIntegerEntries
-			guessesMap[guess] = true
 		}
 	}
 }
