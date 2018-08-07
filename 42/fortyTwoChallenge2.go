@@ -21,7 +21,7 @@ type Employee struct {
 }
 
 func main() {
-	printData(readDataFromFile())
+	printData(sortOnSalaryDescending(readDataFromFile()))
 }
 
 
@@ -54,6 +54,35 @@ func readDataFromFile() (emploees []Employee){
 			} else {
 				fmt.Fprint(os.Stderr, "Line is incorrectrly formatted! %s ", line)
 			}
+		}
+	}
+
+	return
+}
+
+func sortOnSalaryDescending(employees []Employee) (sortedEmployees []Employee) {
+	sortedEmployees = make([]Employee, len(employees))
+
+	for indexOfEmployee, employee := range employees {
+		insertionPoint := -1
+
+		for indexOfSortedEmployee, sortedEmployee := range sortedEmployees {
+			// If we've reached the first empty space, then we know that the employee should be sorted last (for now).
+			if indexOfSortedEmployee > indexOfEmployee {
+				break
+			}
+
+			if employee.salary > sortedEmployee.salary {
+				insertionPoint = indexOfSortedEmployee
+				break
+			}
+		}
+
+		if insertionPoint < 0 {
+			sortedEmployees[indexOfEmployee] = employee
+		} else {
+			copy(sortedEmployees[insertionPoint + 1:], sortedEmployees[insertionPoint : len(sortedEmployees) - 1])
+			sortedEmployees[insertionPoint] = employee
 		}
 	}
 
