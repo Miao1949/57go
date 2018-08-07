@@ -8,8 +8,6 @@ import (
 	"bufio"
 )
 const Inputfilename = "inputFile.txt"
-const Outputfilename = "outputFile.txt"
-
 
 func main() {
 	fileContents, ok := readFile()
@@ -20,9 +18,10 @@ func main() {
 }
 
 func writeToFile(s string) {
-	file, e := os.OpenFile(Outputfilename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	outfilename := getNonEmptyInput("Enter name of file to write to: ")
+	file, e := os.OpenFile(outfilename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if e != nil {
-		fmt.Fprintf(os.Stderr, "Could not open file %s\n", Outputfilename)
+		fmt.Fprintf(os.Stderr, "Could not open file %s\n", outfilename)
 		return
 	}
 
@@ -48,4 +47,18 @@ func readFile() (fileContents string, ok bool){
 	fileContents = string(data)
 	ok = true
 	return
+}
+
+func getNonEmptyInput(msg string) (input string) {
+	done := false
+	for ; !done; {
+		fmt.Print(msg)
+		input, _ = bufio.NewReader(os.Stdin).ReadString('\n')
+		input = strings.TrimSpace(input)
+		if len(input) > 0 {
+			done = true
+		}
+	}
+
+	return input
 }
