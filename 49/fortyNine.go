@@ -96,13 +96,18 @@ func centerWindow(window *widgets.QMainWindow) {
 
 func searchButtonClicked(_ bool) {
 	searchText := searchTextEdit.Text()
-	fetchDataFromFlickrAndDisplayIt(searchText)
-}
-
-func fetchDataFromFlickrAndDisplayIt(searchText string) {
 	removeAllImageLabels()
 	tagDescriptionLabel.SetText("Photos about " + searchText)
 
+	// Start the data retrieval (both feed and then loading the images described in the feed) concurrently.
+	allImagesChan := make(chan [][]byte)
+	go fetchDataFromFlickrAndDisplayIt(searchText, allImagesChan)
+
+	// Wait until the data for all images have been loaded. Then display all images. This must be done in the main thread.
+	displayPicturesInLabels(<-allImagesChan)
+}
+
+func fetchDataFromFlickrAndDisplayIt(searchText string, allImagesChan chan<- [][]byte) {
 	// Load feed and extract URLs of the images to fetch from it.
 	feed, _ := loadFeedFromFlickr(searchText)
 	imageUrls := extractImageUrls(feed)
@@ -118,13 +123,21 @@ func fetchDataFromFlickrAndDisplayIt(searchText string) {
 		}(imageUrl, imageChan)
 	}
 
-	// Display the desired number of images. Display each image as soon as it is loaded.
-	// The update of the UI must be made in the main thread.
+	// Collect the data for the loaded images the imagesData slice. Add add data as soon as it has been loaded.
+	imagesData := make([][]byte, 0)
 	for i:= 0; i < len(imageUrls); i++ {
-		displayPictureInLabel(<-imageChan)
+		imagesData = append(imagesData, <-imageChan)
 	}
+
+	// Send the data about all images back to the main thread.
+	allImagesChan <- imagesData
 }
 
+func displayPicturesInLabels(images [][]byte) {
+	for _, image := range images {
+		displayPictureInLabel(image)
+	}
+}
 
 func displayPictureInLabel(image []byte) {
 	imageLabel := createImageLabel(image)
