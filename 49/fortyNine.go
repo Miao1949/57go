@@ -96,27 +96,35 @@ func centerWindow(window *widgets.QMainWindow) {
 
 func searchButtonClicked(_ bool) {
 	searchText := searchTextEdit.Text()
+	fetchDataFromFlickrAndDisplayIt(searchText)
+}
+
+func fetchDataFromFlickrAndDisplayIt(searchText string) {
+	removeAllImageLabels()
+	tagDescriptionLabel.SetText("Photos about " + searchText)
+
+	// Load feed and extract URLs of the images to fetch from it.
 	feed, _ := loadFeedFromFlickr(searchText)
 	imageUrls := extractImageUrls(feed)
-	images := make([][]byte, 0)
+
+	// Load each image concurrently.
+	imageChan := make(chan []byte, len(imageUrls))
 	for _, imageUrl := range imageUrls {
-		fmt.Println("Loading:", imageUrl)
+		go func(urlOfImageToFetch string, outdataChan chan<- []byte) {
+			fmt.Println("Loading:", urlOfImageToFetch)
+			image, _ := loadImage(urlOfImageToFetch)
+			outdataChan <- image
 
-		image, errorToReturn := loadImage(imageUrl)
-		if errorToReturn == nil {
-			images = append(images, image)
-		}
+		}(imageUrl, imageChan)
 	}
-	tagDescriptionLabel.SetText("Photos about " + searchText)
-	displayPicturesInLabels(images)
-}
 
-func displayPicturesInLabels(images [][]byte) {
-	removeAllImageLabels()
-	for _, image := range images {
-		displayPictureInLabel(image)
+	// Display the desired number of images. Display each image as soon as it is loaded.
+	// The update of the UI must be made in the main thread.
+	for i:= 0; i < len(imageUrls); i++ {
+		displayPictureInLabel(<-imageChan)
 	}
 }
+
 
 func displayPictureInLabel(image []byte) {
 	imageLabel := createImageLabel(image)
