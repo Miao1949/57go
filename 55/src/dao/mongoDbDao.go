@@ -62,7 +62,7 @@ func GetAllUrls() (urls []string, err error) {
 	return
 }
 
-func UrlExist(url string) (exists bool, err error) {
+func UrlExists(url string) (exists bool, err error) {
 	session := getSession()
 	defer session.Close()
 
