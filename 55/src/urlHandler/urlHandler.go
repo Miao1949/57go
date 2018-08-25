@@ -45,8 +45,12 @@ func GenerateAndAddSnippet(text string) (url string, err error) {
 	return
 }
 
-func urlExists(url string) (found bool, err error) {
-	return dao.UrlExists(url)
+func GetTextForUrl(url string) (text string, err error) {
+	return dao.GetTextForUrl(url)
+}
+
+func SetTextForUrl(url string, text string) (err error) {
+	return dao.SetTextForUrl(url, text)
 }
 
 func SortSliceByLength(sliceToSort []string) {sort.Sort(StringSlice(sliceToSort))}
